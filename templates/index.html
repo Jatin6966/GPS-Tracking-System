@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Real-Time Location Demo</title>
+</head>
+
+<body>
+
+<h1>Real-Time Location Tracker</h1>
+
+<label>User ID:</label>
+<input id="userId" value="demo-user">
+
+<button onclick="startTracking()">Start Location Sharing</button>
+
+<p id="status">Waiting...</p>
+
+<script>
+function startTracking() {
+
+    if (!navigator.geolocation) {
+        document.getElementById("status").innerText =
+            "Geolocation is not supported by this browser.";
+        return;
+    }
+
+    document.getElementById("status").innerText =
+        "Requesting location permission...";
+
+    navigator.geolocation.watchPosition(
+        function(position) {
+
+            const userId =
+                document.getElementById("userId").value;
+
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+
+            fetch("/update-location", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    latitude: latitude,
+                    longitude: longitude
+                })
+            });
+
+            document.getElementById("status").innerText =
+                `Sharing location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+        },
+
+        function(error) {
+            document.getElementById("status").innerText =
+                "Location permission was denied or unavailable.";
+        },
+
+        {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 10000
+        }
+    );
+}
+</script>
+
+</body>
+</html>
